@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+# Example usage ./bulk_ldap_load ldap:// "cn=admin,dc=tesla-ldap,dc=local" password FILE_LIST
+if [ "$#" -le 4 ]; then
+    echo "This script loads data from .ldif files into openldap or Active Directory (AD)."
+    echo "ex. ./bulk_ldap_load ldap:// \"cn=admin,dc=tesla-ldap,dc-local\" password file1.ldif file2.ldif ..."
+    exit 1
+fi
+
+SERVER=${1}
+DC=${2}
+PASS=${3}
+FILES=${@:4}
+
+for file in ${FILES}; do
+    ldapadd -x -D ${DC} -w ${PASS} -H ${SERVER} -f ${file}
+done

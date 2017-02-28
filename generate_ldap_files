@@ -1,0 +1,38 @@
+#!/usr/bin/env ruby
+require 'benchmark'
+require_relative 'ldap_generator'
+
+AD_FILE = ARGV[0]
+
+def get_config
+  config = GeneratorConfig.new
+  if AD_FILE
+    puts 'Generating files for Active Directory in ~/ldif_generated_data_ad/...'
+    config.dc_name = 'tesla-ad'
+    config.dc_ext = 'local'
+    config.ldif_path = File.expand_path('~/ldif_generated_data_ad/')
+  else
+    puts 'Generating files for OpenLDAP in ~/ldif_generated_data_ldap/...'
+    config.dc_name = 'tesla-ldap'
+    config.dc_ext = 'local'
+    config.ldif_path = File.expand_path('~/ldif_generated_data_ldap/')
+  end
+  config.group_start_id = GeneratorConfig::GROUP_START_ID
+  config.user_start_id = GeneratorConfig::USER_START_ID
+  config.org_size_map = GeneratorConfig::ORG_SIZE_MAP
+  config.group_counts = GeneratorConfig::GROUP_COUNTS
+  config.disable_trace = true
+  config
+end
+
+begin
+  config = get_config
+  ldap_generator = LDAPGenerator::new(AD_FILE, config)
+  time = Benchmark.measure { ldap_generator.generate_ldif }
+  puts 'cpu time, system time, total, (real elapsed time)'
+  puts time
+rescue Exception => e
+  puts e.message
+  puts e.backtrace.inspect
+  exit 1
+end
